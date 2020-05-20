@@ -1,5 +1,5 @@
 ARG centos=7.8.2003
-ARG image=php-igbinary-7.1
+ARG image=php-msgpack-7.1
 
 FROM aursu/peclbuild:${centos}-${image}
 
