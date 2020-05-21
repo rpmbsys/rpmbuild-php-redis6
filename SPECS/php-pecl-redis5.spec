@@ -260,8 +260,7 @@ sed -e "s/6379/$port/" -i *.php
 
 ret=0
 export TEST_PHP_EXECUTABLE=%{__php}
-export TEST_PHP_ARGS="$DEPS \
-    --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so"
+export TEST_PHP_ARGS="--define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so"
 $TEST_PHP_EXECUTABLE $TEST_PHP_ARGS TestRedis.php || ret=1
 
 : Cleanup
