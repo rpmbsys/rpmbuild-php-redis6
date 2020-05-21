@@ -223,17 +223,18 @@ done
 
 %check
 # simple module load test
+DEPS="--no-php-ini  --define extension=json.so"
 DEPS="$DEPS --define extension=igbinary.so"
 %ifnarch ppc64
     DEPS="$DEPS --define extension=msgpack.so"
 %endif
 
-%{__php} $DEPS \
+%{__php} \
     --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
     --modules | grep %{pecl_name}
 
 %if %{with_zts}
-%{__ztsphp} $DEPS \
+%{__ztsphp} \
     --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
     --modules | grep %{pecl_name}
 %endif
