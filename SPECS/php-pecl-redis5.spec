@@ -223,7 +223,6 @@ done
 
 %check
 # simple module load test
-DEPS="--no-php-ini  --define extension=json.so"
 DEPS="$DEPS --define extension=igbinary.so"
 %ifnarch ppc64
     DEPS="$DEPS --define extension=msgpack.so"
