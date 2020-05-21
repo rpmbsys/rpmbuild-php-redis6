@@ -8,7 +8,7 @@ services:
       context: .
       args:
         centos: $OS7
-        image: php-igbinary-7.4
+        image: php-msgpack-7.4
   centos8redis5php74:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
@@ -17,7 +17,7 @@ services:
       context: .
       args:
         centos: $OS8
-        image: php-igbinary-7.4
+        image: php-msgpack-7.4
 
 volumes:
   rpms:
