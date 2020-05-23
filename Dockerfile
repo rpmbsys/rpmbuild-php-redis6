@@ -3,7 +3,7 @@ ARG image=php-msgpack-7.1
 
 FROM aursu/peclbuild:${centos}-${image}
 
-RUN yum -y install \
+RUN yum -y --enablerepo=bintray-custom install \
         redis \
         liblzf-devel \
         libzstd-devel \
