@@ -22,7 +22,7 @@
 %endif
 # after 20-json, 40-igbinary and 40-msgpack
 %global ini_name    50-%{pecl_name}.ini
-%global upstream_version 5.2.2
+%global upstream_version 5.3.2
 #global upstream_prever  RC2
 
 Summary:       Extension for communicating with the Redis key-value store
@@ -41,11 +41,12 @@ BuildRequires: php-pecl-igbinary-devel
 %ifnarch ppc64
 BuildRequires: php-pecl-msgpack-devel >= 2.0.3
 %endif
-BuildRequires: liblzf-devel
-BuildRequires: libzstd-devel >= 1.3.0
+BuildRequires: pkgconfig(liblzf)
+BuildRequires: pkgconfig(libzstd) >= 1.3.0
+BuildRequires: pkgconfig(liblz4)
 # to run Test suite
 %if %{with_tests}
-BuildRequires: redis >= 3
+BuildRequires: redis >= 6
 %endif
 
 Requires:      php(zend-abi) = %{php_zend_api}
@@ -153,6 +154,7 @@ extension = %{pecl_name}.so
 ;redis.pconnect.pooling_enabled = 1
 ;redis.pconnect.connection_limit = 0
 ;redis.pconnect.echo_check_liveness = 1
+;redis.pconnect.pool_pattern => ''
 ;redis.session.lock_expire = 0
 ;redis.session.lock_retries = 10
 ;redis.session.lock_wait_time = 2000
@@ -163,37 +165,30 @@ EOF
 %build
 %{?dtsenable}
 
-cd NTS
-%{_bindir}/phpize
+peclconf() {
 %configure \
     --enable-redis \
     --enable-redis-session \
     --enable-redis-igbinary \
-%ifnarch ppc64
     --enable-redis-msgpack \
-%endif
     --enable-redis-lzf \
     --with-liblzf \
     --enable-redis-zstd \
     --with-libzstd \
-    --with-php-config=%{_bindir}/php-config
+    --enable-redis-lz4 \
+    --with-liblz4 \
+    --with-php-config=$1
+}
+
+cd NTS
+%{_bindir}/phpize
+peclconf %{_bindir}/php-config
 make %{?_smp_mflags}
 
 %if %{with_zts}
 cd ../ZTS
 %{_bindir}/zts-phpize
-%configure \
-    --enable-redis \
-    --enable-redis-session \
-    --enable-redis-igbinary \
-%ifnarch ppc64
-    --enable-redis-msgpack \
-%endif
-    --enable-redis-lzf \
-    --with-liblzf \
-    --enable-redis-zstd \
-    --with-libzstd \
-    --with-php-config=%{_bindir}/zts-php-config
+peclconf %{_bindir}/zts-php-config
 make %{?_smp_mflags}
 %endif
 
@@ -223,7 +218,10 @@ done
 
 %check
 # simple module load test
-DEPS="--no-php-ini  --define extension=json.so"
+DEPS="--no-php-ini"
+%if "%{php_version}" < "8.0"
+DEPS="$DEPS --define extension=json.so"
+%endif
 DEPS="$DEPS --define extension=igbinary.so"
 %ifnarch ppc64
     DEPS="$DEPS --define extension=msgpack.so"
@@ -290,6 +288,17 @@ exit $ret
 
 
 %changelog
+* Thu Oct 22 2020 Remi Collet <remi@remirepo.net> - 5.3.2-1
+- update to 5.3.2
+
+* Wed Jul  8 2020 Remi Collet <remi@remirepo.net> - 5.3.1-1
+- update to 5.3.1
+
+* Wed Jul  1 2020 Remi Collet <remi@remirepo.net> - 5.3.0-1
+- update to 5.3.0
+- enable lz4 compression support
+- add new option in provided configuration file
+
 * Wed May  6 2020 Remi Collet <remi@remirepo.net> - 5.2.2-1
 - update to 5.2.2
 - refresh options in provided configuration file

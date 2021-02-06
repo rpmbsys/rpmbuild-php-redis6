@@ -1,5 +1,5 @@
-ARG centos=7.8.2003
-ARG image=php-msgpack-7.1
+ARG centos=7.9.2009
+ARG image=php-msgpack-7.4
 
 FROM aursu/peclbuild:${centos}-${image}
 
@@ -7,6 +7,7 @@ RUN yum -y --enablerepo=bintray-custom install \
         redis \
         liblzf-devel \
         libzstd-devel \
+        lz4-devel \
     && yum clean all && rm -rf /var/cache/yum
 
 COPY SOURCES ${BUILD_TOPDIR}/SOURCES
