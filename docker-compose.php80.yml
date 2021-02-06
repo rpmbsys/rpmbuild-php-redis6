@@ -1,6 +1,6 @@
 version: "3.5"
 services:
-  centos7redis5php74:
+  centos7redis5php80:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
       - rpm7:/home/centos/rpmbuild/RPMS
@@ -9,7 +9,7 @@ services:
       args:
         centos: $OS7
         image: php-msgpack-8.0
-  centos8redis5php74:
+  centos8redis5php80:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
       - rpm8:/home/centos/rpmbuild/RPMS
