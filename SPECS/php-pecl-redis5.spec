@@ -13,6 +13,9 @@
 # we don't want -z defs linker flag
 %undefine _strict_symbol_defs_build
 
+%define _debugsource_template %{nil}
+%define debug_package %{nil}
+
 %global pecl_name   redis
 %global with_zts    0%{!?_without_zts:%{?__ztsphp:1}}
 %ifarch s390x
