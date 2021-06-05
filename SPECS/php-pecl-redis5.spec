@@ -3,7 +3,7 @@
 #
 # remirepo spec file for php-pecl-redis5
 #
-# Copyright (c) 2012-2020 Remi Collet
+# Copyright (c) 2012-2021 Remi Collet
 # License: CC-BY-SA
 # http://creativecommons.org/licenses/by-sa/4.0/
 #
@@ -22,7 +22,7 @@
 %endif
 # after 20-json, 40-igbinary and 40-msgpack
 %global ini_name    50-%{pecl_name}.ini
-%global upstream_version 5.3.2
+%global upstream_version 5.3.4
 #global upstream_prever  RC2
 
 Summary:       Extension for communicating with the Redis key-value store
@@ -33,8 +33,11 @@ Source0:       https://pecl.php.net/get/%{pecl_name}-%{upstream_version}%{?upstr
 License:       PHP
 URL:           https://pecl.php.net/package/redis
 
+Patch0:        %{pecl_name}-32-bit.patch
+
+BuildRequires: make
 BuildRequires: gcc
-BuildRequires: php-devel > 7
+BuildRequires: php-devel >= 7.0
 BuildRequires: php-pear
 BuildRequires: php-json
 BuildRequires: php-pecl-igbinary-devel
@@ -100,6 +103,8 @@ sed -e 's/role="test"/role="src"/' \
 cd NTS
 # Use system library
 rm -r liblzf
+
+%patch0 -p1
 
 # Sanity check, really often broken
 extver=$(sed -n '/#define PHP_REDIS_VERSION/{s/.* "//;s/".*$//;p}' php_redis.h)
@@ -288,6 +293,11 @@ exit $ret
 
 
 %changelog
+* Thu Mar 25 2021 Remi Collet <remi@remirepo.net> - 5.3.4-1
+- update to 5.3.4
+- add patch for 32-bit build from
+  https://github.com/phpredis/phpredis/pull/1957
+
 * Thu Oct 22 2020 Remi Collet <remi@remirepo.net> - 5.3.2-1
 - update to 5.3.2
 
