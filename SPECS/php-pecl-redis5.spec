@@ -48,9 +48,7 @@ BuildRequires: php-devel >= 7.0
 BuildRequires: php-pear
 BuildRequires: php-json
 BuildRequires: php-pecl-igbinary-devel
-%ifnarch ppc64
 BuildRequires: php-pecl-msgpack-devel >= 2.0.3
-%endif
 %if %{with lzf}
 BuildRequires: pkgconfig(liblzf)
 %else
@@ -67,9 +65,7 @@ Requires:      php(zend-abi) = %{php_zend_api}
 Requires:      php(api) = %{php_core_api}
 Requires:      php-json%{?_isa}
 Requires:      php-pecl(igbinary)%{?_isa}
-%ifnarch ppc64
 Requires:      php-pecl-msgpack%{?_isa}
-%endif
 
 Obsoletes:     php-%{pecl_name}               < 3
 Provides:      php-%{pecl_name}               = %{version}
@@ -243,16 +239,14 @@ DEPS="--no-php-ini"
 DEPS="$DEPS --define extension=json.so"
 %endif
 DEPS="$DEPS --define extension=igbinary.so"
-%ifnarch ppc64
-    DEPS="$DEPS --define extension=msgpack.so"
-%endif
+DEPS="$DEPS --define extension=msgpack.so"
 
-%{__php} \
+%{__php} $DEPS \
     --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
     --modules | grep '^%{pecl_name}$'
 
 %if %{with_zts}
-%{__ztsphp} \
+%{__ztsphp} $DEPS \
     --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
     --modules | grep '^%{pecl_name}$'
 %endif
@@ -278,7 +272,8 @@ sed -e "s/6379/$port/" -i *.php
 
 ret=0
 export TEST_PHP_EXECUTABLE=%{__php}
-export TEST_PHP_ARGS="--define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so"
+export TEST_PHP_ARGS="$DEPS \
+    --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so"
 $TEST_PHP_EXECUTABLE $TEST_PHP_ARGS TestRedis.php || ret=1
 
 : Cleanup
