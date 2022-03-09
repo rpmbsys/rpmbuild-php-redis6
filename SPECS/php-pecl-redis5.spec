@@ -3,7 +3,7 @@
 #
 # remirepo spec file for php-pecl-redis5
 #
-# Copyright (c) 2012-2021 Remi Collet
+# Copyright (c) 2012-2022 Remi Collet
 # License: CC-BY-SA
 # http://creativecommons.org/licenses/by-sa/4.0/
 #
@@ -19,13 +19,19 @@
 %global pecl_name   redis
 %global with_zts    0%{!?_without_zts:%{?__ztsphp:1}}
 %ifarch s390x
-%global with_tests  0%{?_with_tests:1}
+%bcond_with         tests
 %else
-%global with_tests  0%{!?_without_tests:1}
+%if 0%{?fedora} >= 33 || 0%{?rhel} >= 9
+%bcond_without      tests
+%else
+%bcond_with         tests
 %endif
+%endif
+%bcond_without      lzf
+
 # after 20-json, 40-igbinary and 40-msgpack
 %global ini_name    50-%{pecl_name}.ini
-%global upstream_version 5.3.4
+%global upstream_version 5.3.7
 #global upstream_prever  RC2
 
 Summary:       Extension for communicating with the Redis key-value store
@@ -36,8 +42,6 @@ Source0:       https://pecl.php.net/get/%{pecl_name}-%{upstream_version}%{?upstr
 License:       PHP
 URL:           https://pecl.php.net/package/redis
 
-Patch0:        %{pecl_name}-32-bit.patch
-
 BuildRequires: make
 BuildRequires: gcc
 BuildRequires: php-devel >= 7.0
@@ -47,7 +51,11 @@ BuildRequires: php-pecl-igbinary-devel
 %ifnarch ppc64
 BuildRequires: php-pecl-msgpack-devel >= 2.0.3
 %endif
+%if %{with lzf}
 BuildRequires: pkgconfig(liblzf)
+%else
+Provides:      bundled(liblzf) = 3.6
+%endif
 BuildRequires: pkgconfig(libzstd) >= 1.3.0
 BuildRequires: pkgconfig(liblz4)
 # to run Test suite
@@ -100,14 +108,16 @@ mv %{pecl_name}-%{upstream_version}%{?upstream_prever} NTS
 # Don't install/register tests, license, and bundled library
 sed -e 's/role="test"/role="src"/' \
     -e '/COPYING/s/role="doc"/role="src"/' \
+%if %{with lzf}
     -e '/liblzf/d' \
+%endif
     -i package.xml
 
 cd NTS
 # Use system library
+%if %{with lzf}
 rm -r liblzf
-
-%patch0 -p1
+%endif
 
 # Sanity check, really often broken
 extver=$(sed -n '/#define PHP_REDIS_VERSION/{s/.* "//;s/".*$//;p}' php_redis.h)
@@ -180,7 +190,9 @@ peclconf() {
     --enable-redis-igbinary \
     --enable-redis-msgpack \
     --enable-redis-lzf \
+%if %{with lzf}
     --with-liblzf \
+%endif
     --enable-redis-zstd \
     --with-libzstd \
     --enable-redis-lz4 \
@@ -237,12 +249,12 @@ DEPS="$DEPS --define extension=igbinary.so"
 
 %{__php} \
     --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
-    --modules | grep %{pecl_name}
+    --modules | grep '^%{pecl_name}$'
 
 %if %{with_zts}
 %{__ztsphp} \
     --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
-    --modules | grep %{pecl_name}
+    --modules | grep '^%{pecl_name}$'
 %endif
 
 %if %{with_tests}
@@ -296,6 +308,9 @@ exit $ret
 
 
 %changelog
+* Wed Feb 16 2022 Remi Collet <remi@remirepo.net> - 5.3.7-1
+- update to 5.3.7
+
 * Thu Mar 25 2021 Remi Collet <remi@remirepo.net> - 5.3.4-1
 - update to 5.3.4
 - add patch for 32-bit build from
