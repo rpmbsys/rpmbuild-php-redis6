@@ -59,7 +59,7 @@ Provides:      bundled(liblzf) = 3.6
 BuildRequires: pkgconfig(libzstd) >= 1.3.0
 BuildRequires: pkgconfig(liblz4)
 # to run Test suite
-%if %{with_tests}
+%if %{with tests}
 BuildRequires: redis >= 6
 %endif
 
@@ -257,7 +257,7 @@ DEPS="$DEPS --define extension=igbinary.so"
     --modules | grep '^%{pecl_name}$'
 %endif
 
-%if %{with_tests}
+%if %{with tests}
 cd NTS/tests
 
 : Launch redis server
