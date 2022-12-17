@@ -18,7 +18,7 @@
 
 %global pecl_name   redis
 %global with_zts    0%{!?_without_zts:%{?__ztsphp:1}}
-%ifarch s390x
+%ifarch s390x ppc64le
 %bcond_with         tests
 %else
 %if 0%{?fedora} >= 33 || 0%{?rhel} >= 9
