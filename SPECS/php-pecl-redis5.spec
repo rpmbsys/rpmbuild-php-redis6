@@ -235,9 +235,6 @@ done
 %check
 # simple module load test
 DEPS="--no-php-ini"
-%if "%{php_version}" < "8.0"
-DEPS="$DEPS --define extension=json.so"
-%endif
 DEPS="$DEPS --define extension=igbinary.so"
 DEPS="$DEPS --define extension=msgpack.so"
 

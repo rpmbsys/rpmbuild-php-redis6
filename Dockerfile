@@ -10,10 +10,6 @@ RUN dnf -y --enablerepo=bintray-custom install \
         lz4-devel \
     && dnf clean all && rm -rf /var/cache/dnf
 
-RUN dnf -y --repo=bintray-phpcustom install \
-        php-json \
-    && dnf clean all && rm -rf /var/cache/dnf
-
 COPY SOURCES ${BUILD_TOPDIR}/SOURCES
 COPY SPECS ${BUILD_TOPDIR}/SPECS
 
