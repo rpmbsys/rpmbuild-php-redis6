@@ -326,7 +326,7 @@ exit $ret
 - update to 5.2.2
 - refresh options in provided configuration file
 
-* Mon Nov 12 2019 Remi Collet <remi@remirepo.net> - 5.1.1-1
+* Tue Nov 12 2019 Remi Collet <remi@remirepo.net> - 5.1.1-1
 - update to 5.1.1
 
 * Mon Nov  4 2019 Remi Collet <remi@remirepo.net> - 5.1.0-1
