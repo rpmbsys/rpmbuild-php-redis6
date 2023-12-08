@@ -3,8 +3,8 @@
 #
 # remirepo spec file for php-pecl-redis5
 #
-# Copyright (c) 2012-2022 Remi Collet
-# License: CC-BY-SA
+# Copyright (c) 2012-2023 Remi Collet
+# License: CC-BY-SA-4.0
 # http://creativecommons.org/licenses/by-sa/4.0/
 #
 # Please, preserve the changelog entries
@@ -37,10 +37,12 @@
 Summary:       Extension for communicating with the Redis key-value store
 Name:          php-pecl-redis5
 Version:       %{upstream_version}%{?upstream_prever:~%{upstream_prever}}
-Release:       1%{?dist}
+Release:       6%{?dist}
 Source0:       https://pecl.php.net/get/%{pecl_name}-%{upstream_version}%{?upstream_prever}.tgz
-License:       PHP
+License:       PHP-3.01
 URL:           https://pecl.php.net/package/redis
+
+Patch0:        %{pecl_name}-tests.patch
 
 BuildRequires: make
 BuildRequires: gcc
@@ -110,6 +112,8 @@ sed -e 's/role="test"/role="src"/' \
     -i package.xml
 
 cd NTS
+%patch -P0 -p1 -b.pr2335
+
 # Use system library
 %if %{with lzf}
 rm -r liblzf
@@ -300,6 +304,16 @@ exit $ret
 
 
 %changelog
+* Tue Oct 03 2023 Remi Collet <remi@remirepo.net> - 5.3.7-6
+- rebuild for https://fedoraproject.org/wiki/Changes/php83
+
+* Fri Jul 21 2023 Fedora Release Engineering <releng@fedoraproject.org> - 5.3.7-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_39_Mass_Rebuild
+
+* Thu Mar 23 2023 Remi Collet <remi@remirepo.net> - 5.3.7-4
+- add patch for test suite with redis 7.2 from
+  https://github.com/phpredis/phpredis/pull/2335
+
 * Wed Feb 16 2022 Remi Collet <remi@remirepo.net> - 5.3.7-1
 - update to 5.3.7
 
