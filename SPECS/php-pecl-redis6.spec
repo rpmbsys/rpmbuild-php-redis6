@@ -1,123 +1,120 @@
-# Fedora spec file for php-pecl-redis5
+# RHEL/Fedora spec file for php-pecl-redis6
 # without SCL compatibility from:
 #
-# remirepo spec file for php-pecl-redis5
+# remirepo spec file for php-pecl-redis6
 #
-# Copyright (c) 2012-2023 Remi Collet
-# License: CC-BY-SA-4.0
-# http://creativecommons.org/licenses/by-sa/4.0/
+# SPDX-FileCopyrightText:  Copyright 2012-2025 Remi Collet
+# SPDX-License-Identifier: CECILL-2.1
+# http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt
 #
 # Please, preserve the changelog entries
 #
 
-# we don't want -z defs linker flag
-%undefine _strict_symbol_defs_build
+%bcond_without       tests
+%bcond_without       igbinary
+%bcond_without       msgpack
+%bcond_without       valkey
 
-%define _debugsource_template %{nil}
-%define debug_package %{nil}
-
-%global pecl_name   redis
-%global with_zts    0%{!?_without_zts:%{?__ztsphp:1}}
-%ifarch s390x ppc64le
-%bcond_with         tests
-%else
-%if 0%{?fedora} >= 33 || 0%{?rhel} >= 9
-%bcond_without      tests
-%else
-%bcond_with         tests
-%endif
-%endif
-%bcond_without      lzf
-
+%global pie_vend     phpredis
+%global pie_proj     phpredis
+%global pecl_name    redis
 # after 20-json, 40-igbinary and 40-msgpack
-%global ini_name    50-%{pecl_name}.ini
-%global upstream_version 5.3.7
-#global upstream_prever  RC2
+%global ini_name     50-%{pecl_name}.ini
 
-Summary:       Extension for communicating with the Redis key-value store
-Name:          php-pecl-redis5
+%global upstream_version 6.2.0
+#global upstream_prever  RC2
+%global sources          %{pecl_name}-%{upstream_version}%{?upstream_prever}
+
+Summary:       PHP extension for interfacing with key-value stores
+Name:          php-pecl-redis6
 Version:       %{upstream_version}%{?upstream_prever:~%{upstream_prever}}
-Release:       6%{?dist}
-Source0:       https://pecl.php.net/get/%{pecl_name}-%{upstream_version}%{?upstream_prever}.tgz
+Release:       1%{?dist}
 License:       PHP-3.01
 URL:           https://pecl.php.net/package/redis
+Source0:       https://pecl.php.net/get/%{sources}.tgz
 
-Patch0:        %{pecl_name}-tests.patch
+ExcludeArch:   %{ix86}
 
 BuildRequires: make
 BuildRequires: gcc
-BuildRequires: php-devel >= 7.0
+BuildRequires: php-devel >= 7.4
 BuildRequires: php-pear
 BuildRequires: php-json
+%if %{with igbinary}
 BuildRequires: php-pecl-igbinary-devel
-BuildRequires: php-pecl-msgpack-devel >= 2.0.3
-%if %{with lzf}
-BuildRequires: pkgconfig(liblzf)
-%else
-Provides:      bundled(liblzf) = 3.6
 %endif
+%if %{with msgpack}
+BuildRequires: php-pecl-msgpack-devel >= 2.0.3
+%endif
+BuildRequires: pkgconfig(liblzf)
 BuildRequires: pkgconfig(libzstd) >= 1.3.0
 BuildRequires: pkgconfig(liblz4)
 # to run Test suite
 %if %{with tests}
-BuildRequires: redis >= 6
+%if %{with valkey}
+BuildRequires: valkey
+%else
+BuildRequires: redis
+%endif
 %endif
 
 Requires:      php(zend-abi) = %{php_zend_api}
 Requires:      php(api) = %{php_core_api}
 Requires:      php-json%{?_isa}
-Requires:      php-pecl(igbinary)%{?_isa}
-Requires:      php-pecl-msgpack%{?_isa}
+%if %{with igbinary}
+Requires:      php-igbinary%{?_isa}
+%endif
+%if %{with msgpack}
+Requires:      php-msgpack%{?_isa}
+%endif
 
-Obsoletes:     php-%{pecl_name}               < 3
-Provides:      php-%{pecl_name}               = %{version}
-Provides:      php-%{pecl_name}%{?_isa}       = %{version}
-Provides:      php-pecl(%{pecl_name})         = %{version}
-Provides:      php-pecl(%{pecl_name})%{?_isa} = %{version}
+Provides:      php-%{pecl_name}                 = %{version}
+Provides:      php-%{pecl_name}%{?_isa}         = %{version}
+Provides:      php-pecl(%{pecl_name})           = %{version}
+Provides:      php-pecl(%{pecl_name})%{?_isa}   = %{version}
+Provides:      php-pie(%{pie_vend}/%{pie_proj}) = %{version}
+Provides:      php-%{pie_vend}-%{pie_proj}      = %{version}
 
-%if 0%{?fedora} >= 31 || 0%{?rhel} >= 8
-Obsoletes:     php-pecl-%{pecl_name}          < 5
+%if 0%{?fedora} >= 42 || 0%{?rhel} >= 10 || "%{php_version}" > "8.4"
+Obsoletes:     php-pecl-%{pecl_name}          < 6
 Provides:      php-pecl-%{pecl_name}          = %{version}-%{release}
 Provides:      php-pecl-%{pecl_name}%{?_isa}  = %{version}-%{release}
-Obsoletes:     php-pecl-%{pecl_name}4         < 5
+Obsoletes:     php-pecl-%{pecl_name}4         < 6
 Provides:      php-pecl-%{pecl_name}4         = %{version}-%{release}
 Provides:      php-pecl-%{pecl_name}4%{?_isa} = %{version}-%{release}
+Obsoletes:     php-pecl-%{pecl_name}5         < 6
+Provides:      php-pecl-%{pecl_name}5         = %{version}-%{release}
+Provides:      php-pecl-%{pecl_name}5%{?_isa} = %{version}-%{release}
 %else
 # A single version can be installed
-Conflicts:     php-pecl-%{pecl_name}  < 5
-Conflicts:     php-pecl-%{pecl_name}4 < 5
+Conflicts:     php-pecl-%{pecl_name}  < 6
+Conflicts:     php-pecl-%{pecl_name}4 < 6
+Conflicts:     php-pecl-%{pecl_name}5 < 6
 %endif
 
 
 %description
-The phpredis extension provides an API for communicating
-with the Redis key-value store.
+This extension provides an API for communicating with RESP-based key-value
+stores, such as Redis, Valkey, and KeyDB.
 
-This Redis client implements most of the latest Redis API.
-As method only only works when also implemented on the server side,
-some doesn't work with an old redis server version.
+This client implements most of the latest API.
+As method only works when also implemented on the server side,
+some doesn't work with an old server version.
 
 
 %prep
 %setup -q -c
-# rename source folder
-mv %{pecl_name}-%{upstream_version}%{?upstream_prever} NTS
 
 # Don't install/register tests, license, and bundled library
 sed -e 's/role="test"/role="src"/' \
-    -e '/COPYING/s/role="doc"/role="src"/' \
-%if %{with lzf}
+    -e '/LICENSE/s/role="doc"/role="src"/' \
     -e '/liblzf/d' \
-%endif
     -i package.xml
 
-cd NTS
-%patch -P0 -p1 -b.pr2335
+cd %{sources}
 
 # Use system library
-%if %{with lzf}
 rm -r liblzf
-%endif
 
 # Sanity check, really often broken
 extver=$(sed -n '/#define PHP_REDIS_VERSION/{s/.* "//;s/".*$//;p}' php_redis.h)
@@ -127,17 +124,12 @@ if test "x${extver}" != "x%{upstream_version}%{?upstream_prever}"; then
 fi
 cd ..
 
-%if %{with_zts}
-# duplicate for ZTS build
-cp -pr NTS ZTS
-%endif
-
 # Drop in the bit of configuration
 cat > %{ini_name} << 'EOF'
 ; Enable %{pecl_name} extension module
 extension = %{pecl_name}.so
 
-; phpredis can be used to store PHP sessions.
+; phpredis can be used to store PHP sessions. 
 ; To do this, uncomment and configure below
 
 ; RPM note : save_handler and save_path are defined
@@ -172,27 +164,32 @@ extension = %{pecl_name}.so
 ;redis.pconnect.pooling_enabled = 1
 ;redis.pconnect.connection_limit = 0
 ;redis.pconnect.echo_check_liveness = 1
+;redis.pconnect.pool_detect_dirty = 0
+;redis.pconnect.pool_poll_timeout = 0
 ;redis.pconnect.pool_pattern => ''
-;redis.session.lock_expire = 0
-;redis.session.lock_retries = 10
-;redis.session.lock_wait_time = 2000
 ;redis.session.locking_enabled = 0
+;redis.session.lock_expire = 0
+;redis.session.lock_retries = 100
+;redis.session.lock_wait_time = 20000
+;redis.session.early_refresh = 0
+;redis.session.compression = none
+;redis.session.compression_level = 3
 EOF
 
 
 %build
-%{?dtsenable}
-
 peclconf() {
 %configure \
     --enable-redis \
     --enable-redis-session \
+%if %{with igbinary}
     --enable-redis-igbinary \
-    --enable-redis-msgpack \
-    --enable-redis-lzf \
-%if %{with lzf}
-    --with-liblzf \
 %endif
+%if %{with msgpack}
+    --enable-redis-msgpack \
+%endif
+    --enable-redis-lzf \
+    --with-liblzf \
     --enable-redis-zstd \
     --with-libzstd \
     --enable-redis-lz4 \
@@ -200,37 +197,25 @@ peclconf() {
     --with-php-config=$1
 }
 
-cd NTS
-%{_bindir}/phpize
-peclconf %{_bindir}/php-config
-make %{?_smp_mflags}
+cd %{sources}
+%{__phpize}
+sed -e 's/INSTALL_ROOT/DESTDIR/' -i build/Makefile.global
 
-%if %{with_zts}
-cd ../ZTS
-%{_bindir}/zts-phpize
-peclconf %{_bindir}/zts-php-config
-make %{?_smp_mflags}
-%endif
+peclconf %{__phpconfig}
+%make_build
 
 
 %install
-%{?dtsenable}
-
-# Install the NTS stuff
-make -C NTS install INSTALL_ROOT=%{buildroot}
+# Install the configuration file
 install -D -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
-
-%if %{with_zts}
-# Install the ZTS stuff
-make -C ZTS install INSTALL_ROOT=%{buildroot}
-install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
-%endif
 
 # Install the package XML file
 install -D -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
 
+cd %{sources}
+%make_install
+
 # Documentation
-cd NTS
 for i in $(grep 'role="doc"' ../package.xml | sed -e 's/^.*name="//;s/".*$//')
 do install -Dpm 644 $i %{buildroot}%{pecl_docdir}/%{pecl_name}/$i
 done
@@ -239,31 +224,36 @@ done
 %check
 # simple module load test
 DEPS="--no-php-ini"
-DEPS="$DEPS --define extension=igbinary.so"
-DEPS="$DEPS --define extension=msgpack.so"
+for i in json igbinary msgpack
+do  [ -f %{php_extdir}/${i}.so ] && DEPS="$DEPS --define extension=${i}.so"
+done
 
 %{__php} $DEPS \
     --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
     --modules | grep '^%{pecl_name}$'
 
-%if %{with_zts}
-%{__ztsphp} $DEPS \
-    --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
-    --modules | grep '^%{pecl_name}$'
-%endif
-
 %if %{with tests}
-cd NTS/tests
+cd %{sources}/tests
+: Ignore ONLINE test
+sed -e 's/testConnectException/skipConnectException/' -i RedisTest.php
 
 : Launch redis server
+%if %{with valkey}
+SRV=%{_bindir}/valkey-server
+CLI=%{_bindir}/valkey-cli
+%else
+SRV=%{_bindir}/redis-server
+CLI=%{_bindir}/redis-cli
+%endif
+
 mkdir -p data
-pidfile=$PWD/redis.pid
+pidfile=$PWD/server.pid
 port=$(%{__php} -r 'echo 9000 + PHP_MAJOR_VERSION*100 + PHP_MINOR_VERSION*10 + PHP_INT_SIZE;')
-%{_bindir}/redis-server   \
+$SRV   \
     --bind      127.0.0.1      \
     --port      $port          \
     --daemonize yes            \
-    --logfile   $PWD/redis.log \
+    --logfile   $PWD/server.log \
     --dir       $PWD/data      \
     --pidfile   $pidfile
 
@@ -279,73 +269,182 @@ $TEST_PHP_EXECUTABLE $TEST_PHP_ARGS TestRedis.php || ret=1
 
 : Cleanup
 if [ -f $pidfile ]; then
-   %{_bindir}/redis-cli -p $port shutdown
+   $CLI -p $port shutdown nosave
+   sleep 2
 fi
-cat $PWD/redis.log
+cat $PWD/server.log
 
 exit $ret
 %else
 : Upstream test suite disabled
 %endif
 
-
 %files
-%license NTS/COPYING
+%license %{sources}/LICENSE
 %doc %{pecl_docdir}/%{pecl_name}
 %{pecl_xmldir}/%{name}.xml
 
 %{php_extdir}/%{pecl_name}.so
 %config(noreplace) %{php_inidir}/%{ini_name}
 
-%if %{with_zts}
-%{php_ztsextdir}/%{pecl_name}.so
-%config(noreplace) %{php_ztsinidir}/%{ini_name}
-%endif
-
 
 %changelog
-* Tue Oct 03 2023 Remi Collet <remi@remirepo.net> - 5.3.7-6
-- rebuild for https://fedoraproject.org/wiki/Changes/php83
+* Tue Mar 25 2025 Remi Collet <remi@remirepo.net> - 6.2.0-1
+- update to 6.2.0
+- re-license spec file to CECILL-2.1
+- add virtual provides for pie
 
-* Fri Jul 21 2023 Fedora Release Engineering <releng@fedoraproject.org> - 5.3.7-5
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_39_Mass_Rebuild
+* Mon Oct  7 2024 Remi Collet <remi@remirepo.net> - 6.1.0-1
+- update to 6.1.0
 
-* Thu Mar 23 2023 Remi Collet <remi@remirepo.net> - 5.3.7-4
+* Mon Sep 16 2024 Remi Collet <remi@remirepo.net> - 6.0.2-3
+- cleanup and modernize spec file
+
+* Thu Jul 11 2024 Remi Collet <remi@remirepo.net> - 6.0.2-2
+- use valkey on Fedora 41
+- add upstream patch for PHP 8.4
+
+* Mon Oct 23 2023 Remi Collet <remi@remirepo.net> - 6.0.2-1
+- update to 6.0.2
+
+* Mon Sep 25 2023 Remi Collet <remi@remirepo.net> - 6.0.1-1
+- update to 6.0.1
+
+* Mon Sep 11 2023 Remi Collet <remi@remirepo.net> - 6.0.0-1
+- cleanup SCL stuff for Fedora review
+
+* Mon Sep 11 2023 Remi Collet <remi@remirepo.net> - 6.0.0-1
+- update to 6.0.0
+
+* Mon Aug 21 2023 Remi Collet <remi@remirepo.net> - 6.0.0~RC2-1
+- update to 6.0.0RC2
+
+* Wed Aug  2 2023 Remi Collet <remi@remirepo.net> - 6.0.0~RC1-1
+- update to 6.0.0RC1
+- rename to php-pecl-redis6 for new API
+- disable test suite for SCL
+- open https://github.com/phpredis/phpredis/pull/2367 PHP 7.2 required
+
+* Wed Jul 12 2023 Remi Collet <remi@remirepo.net> - 5.3.7-4
+- build out of sources tree
+
+* Thu Mar 23 2023 Remi Collet <remi@remirepo.net> - 5.3.7-3
 - add patch for test suite with redis 7.2 from
   https://github.com/phpredis/phpredis/pull/2335
+
+* Fri Sep  9 2022 Remi Collet <remi@remirepo.net> - 5.3.7-2
+- rebuild for PHP 8.2 with msgpack and igbinary
 
 * Wed Feb 16 2022 Remi Collet <remi@remirepo.net> - 5.3.7-1
 - update to 5.3.7
 
+* Mon Feb 14 2022 Remi Collet <remi@remirepo.net> - 5.3.7~RC2-1
+- update to 5.3.7RC2 (beta, no change)
+
+* Wed Feb  2 2022 Remi Collet <remi@remirepo.net> - 5.3.7~RC1-1
+- update to 5.3.7RC1 (alpha)
+
+* Tue Jan 18 2022 Remi Collet <remi@remirepo.net> - 5.3.6-1
+- update to 5.3.6
+
+* Mon Dec 20 2021 Remi Collet <remi@remirepo.net> - 5.3.5-1
+- update to 5.3.5
+
+* Wed Dec  8 2021 Remi Collet <remi@remirepo.net> - 5.3.5-0
+- test build for upcoming 5.3.5
+
+* Wed Nov 17 2021 Remi Collet <remi@remirepo.net> - 5.3.5~RC1-1
+- update to 5.3.5RC1
+
+* Wed Sep 01 2021 Remi Collet <remi@remirepo.net> - 5.3.4-2
+- rebuild for 8.1.0RC1
+
 * Thu Mar 25 2021 Remi Collet <remi@remirepo.net> - 5.3.4-1
 - update to 5.3.4
-- add patch for 32-bit build from
-  https://github.com/phpredis/phpredis/pull/1957
+
+* Wed Feb  3 2021 Remi Collet <remi@remirepo.net> - 5.3.3-1
+- update to 5.3.3
 
 * Thu Oct 22 2020 Remi Collet <remi@remirepo.net> - 5.3.2-1
 - update to 5.3.2
+
+* Wed Oct 14 2020 Remi Collet <remi@remirepo.net> - 5.3.2~RC2-1
+- update to 5.3.2RC2
+
+* Wed Oct  7 2020 Remi Collet <remi@remirepo.net> - 5.3.2~RC1-1
+- update to 5.3.2RC1
+- drop patch merged upstream
+
+* Wed Sep 30 2020 Remi Collet <remi@remirepo.net> - 5.3.1-4
+- rebuild for PHP 8.0.0RC1
+
+* Wed Sep 23 2020 Remi Collet <remi@remirepo.net> - 5.3.1-3
+- enable msgpack serializer with PHP 8
+
+* Fri Sep 11 2020 Remi Collet <remi@remirepo.net> - 5.3.1-2
+- add patches for PHP 8 from upstream and
+  https://github.com/phpredis/phpredis/pull/1845
+- disable msgpack serializer with PHP 8
 
 * Wed Jul  8 2020 Remi Collet <remi@remirepo.net> - 5.3.1-1
 - update to 5.3.1
 
 * Wed Jul  1 2020 Remi Collet <remi@remirepo.net> - 5.3.0-1
 - update to 5.3.0
+
+* Sat Jun 27 2020 Remi Collet <remi@remirepo.net> - 5.3.0~RC2-1
+- update to 5.3.0RC2
+- drop patch merged upstream
+
+* Fri Jun 26 2020 Remi Collet <remi@remirepo.net> - 5.3.0~RC1-1
+- update to 5.3.0RC1
 - enable lz4 compression support
+- drop patch merged upstream
+- add upstream patch to fix lz4 library name
 - add new option in provided configuration file
+
+* Wed May  6 2020 Remi Collet <remi@remirepo.net> - 5.2.2-2
+- test build for https://github.com/phpredis/phpredis/pull/1750
 
 * Wed May  6 2020 Remi Collet <remi@remirepo.net> - 5.2.2-1
 - update to 5.2.2
 - refresh options in provided configuration file
 
-* Tue Nov 12 2019 Remi Collet <remi@remirepo.net> - 5.1.1-1
+* Fri Mar 20 2020 Remi Collet <remi@remirepo.net> - 5.2.1-1
+- update to 5.2.1
+
+* Mon Mar  2 2020 Remi Collet <remi@remirepo.net> - 5.2.0-1
+- update to 5.2.0
+
+* Fri Feb 21 2020 Remi Collet <remi@remirepo.net> - 5.2.0~RC2-1
+- update to 5.2.0RC2
+
+* Mon Feb 17 2020 Remi Collet <remi@remirepo.net> - 5.2.0~RC1-1
+- update to 5.2.0RC1
+
+* Mon Nov 11 2019 Remi Collet <remi@remirepo.net> - 5.1.1-1
 - update to 5.1.1
 
-* Mon Nov  4 2019 Remi Collet <remi@remirepo.net> - 5.1.0-1
+* Fri Nov  1 2019 Remi Collet <remi@remirepo.net> - 5.1.0-1
 - update to 5.1.0
+
+* Mon Oct 21 2019 Remi Collet <remi@remirepo.net> - 5.1.0~RC2-1
+- update to 5.1.0RC2
+- drop patch merged upstream
+
+* Wed Oct  9 2019 Remi Collet <remi@remirepo.net> - 5.1.0~RC1-1
+- update to 5.1.0RC1
 - enable ZSTD compression support
+- open https://github.com/phpredis/phpredis/pull/1648
+
+* Tue Sep 03 2019 Remi Collet <remi@remirepo.net> - 5.0.2-2
+- rebuild for 7.4.0RC1
 
 * Tue Jul 30 2019 Remi Collet <remi@remirepo.net> - 5.0.2-1
 - update to 5.0.2
+
+* Tue Jul 23 2019 Remi Collet <remi@remirepo.net> - 5.0.1-2
+- rebuild for 7.4.0beta1
 
 * Fri Jul 12 2019 Remi Collet <remi@remirepo.net> - 5.0.1-1
 - update to 5.0.1
