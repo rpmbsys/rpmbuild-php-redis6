@@ -8,6 +8,7 @@ RUN dnf -y --enablerepo=bintray-custom install \
         liblzf-devel \
         libzstd-devel \
         lz4-devel \
+        valkey \
     && dnf clean all && rm -rf /var/cache/dnf
 
 COPY SOURCES ${BUILD_TOPDIR}/SOURCES
