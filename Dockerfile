@@ -17,5 +17,5 @@ RUN chown -R $BUILD_USER ${BUILD_TOPDIR}/{SOURCES,SPECS}
 
 USER $BUILD_USER
 
-ENTRYPOINT ["/usr/bin/rpmbuild", "php-pecl-redis5.spec"]
+ENTRYPOINT ["/usr/bin/rpmbuild", "php-pecl-redis6.spec"]
 CMD ["-ba"]
